@@ -1,53 +1,85 @@
+import React from 'react';
 import './App.css';
-import React,{useState} from "react";
-import {
-	BrowserRouter as Router,
-	Routes,
-	Route
-} from "react-router-dom";
-import { About } from './components/About';
-import { Home } from './components/Home';
-import { Navbar } from './components/Navbar';
-import NoteState from './context/notes/NoteState';
-import { SignUp } from './components/SignUp';
-import { Login } from './components/Login';
-import Alert  from './components/Alert';
 
+const App = () => {
+  return (
+    <></>
+  );
 
+  // const [fullName,setFullName] =useState({
+  //   fname:"",
+  //   lname:"",
+  //   email:"",
+  //   number:"",
+  // });
+  
+  // const inputEvent = (event)  => {
+  //   console.log(event.target.value);
+  //   console.log(event.target.name); 
 
-function App() {
-	const [alert, setAlert] = useState(null);
+  //   const value=event.target.value;
+  //   const name=event.target.name;
 
-	const showAlert = (message, type)=>{
-		setAlert({
-		  msg: message,
-		  type: type
-		})
-		setTimeout(() => {
-			setAlert(null);
-		}, 1500);
-	}
-	return (
-		<>
-		<NoteState>
-			<Router>
-				<div>
-					<Navbar />
-					<Alert alert={alert}/>
-					<div className="container">
-					<Routes>
-						<Route path="/" element={<Home showAlert={showAlert}/>} />
-						<Route path="/about" element={<About />} />
-						<Route path="/login" element={<Login showAlert={showAlert}/>} />
-						<Route path="/signup" element={<SignUp showAlert={showAlert}/>} />
-					</Routes>
-					</div>
-					
-				</div>
-			</Router>
-		</NoteState>
-		</>
-	);
+  //   setFullName((prevalue) => {
+  //     if(name === 'fname') {
+  //       return {
+  //         fname: value,
+  //         lname: prevalue.lname,
+  //         email: prevalue.email,
+  //         number: prevalue.number,
+  //       };
+  //     } else if(name === 'lname') {
+  //       return {
+  //         fname: prevalue.fname,
+  //         lname: value,
+  //         email: prevalue.email,
+  //         number: prevalue.number,
+  //       };
+  //     } else if(name === 'email') {
+  //       return {
+  //         fname: prevalue.fname,
+  //         lname: prevalue.lname,
+  //         email: value,
+  //         number: prevalue.number,
+  //       };
+  //     } else if(name === 'number') {
+  //       return {
+  //         fname: prevalue.fname,
+  //         lname: prevalue.lname,
+  //         email: prevalue.email,
+  //         number: value,
+  //       };
+  //     } 
+  //   })
+
+  // };
+ 
+  // const onSubmit=(event) => {
+  //   event.preventDefault();
+  //   alert("form submitted");
+  // };
+  // return (
+  //   <>
+  //     <div className='main_div'>
+  //       <form onSubmit={onSubmit}>
+  //         <div>
+  //           <h1>Hello {fullName.fname} {fullName.lname}</h1>
+  //           <h4>{fullName.email}</h4>
+  //           <h4>{fullName.number}</h4>
+  //           <input type="text" placeholder="enter first name" name='fname' value={fullName.fname} onChange={inputEvent}/> 
+  //           <br />
+  //           <input type="text" placeholder='enter last name' name='lname' value={fullName.lname} onChange={inputEvent}/>
+  //           <br />
+  //           <input type="email" placeholder="enter email" name='email' value={fullName.email} onChange={inputEvent}/> 
+  //           <br />
+  //           <input type="number" placeholder="enter phone number" name='number' value={fullName.number} onChange={inputEvent}/> 
+  //           <br />
+  //           <button type='submit' >Submit</button>
+  //         </div>
+  //       </form>
+  //     </div>
+  //   </>
+  // );
 }
 
 export default App;

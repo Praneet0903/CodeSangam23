@@ -1,80 +1,138 @@
-import React, { useContext, useState } from 'react'
-import NoteContext from '../context/notes/NoteContext'
-import DatePicker from "react-datepicker";
-import 'react-datepicker/dist/react-datepicker.css'
+import React, { useState, useContext } from "react";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
+import NoteContext from "../context/notes/NoteContext";
 
-export const AddNote = (props) => {
-    const [date, setDate] = useState(new Date());
-    const context = useContext(NoteContext);
-    const { addNote } = context;
-    const [note, setnote] = useState({ title: "", description: "", tag: "",priority:"",deadline:null })
+const AddNote = () => {
+  const context = useContext(NoteContext);
+  const { addNote } = context;
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        addNote(note.title, note.description, note.tag);
-        setnote({ title: "", description: "", tag: "" ,priority:"",deadline:null });
-        props.showAlert("Note Added Successfully", "success");
-    }
-    const onChange = (ele) => {
-        setnote({ ...note, [ele.target.name]: ele.target.value })
-    }
+  const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  const [note, setNote] = useState({
+    title: "",
+    description: "",
+    tag: "",
+    date: "",
+  });
+  // const [file, setFile] = useState("");
 
-    const changeTag = (e) => {
-        setnote({ ...note, tag: e.target.innerHTML })
-    }
-    const changePriority = (e) => {
-        setnote({ ...note, priority: e.target.innerHTML })
-    }
+  // const handleImage = ()=>{
+  //   console.log(file);
+  // };
 
-    return (
-        <div>
-            <div className="container my-2">
-                <h2>Add a note</h2>
-                <form>
-                    <div className="mb-3">
-                        <label htmlFor="title" className="form-label">Title</label>
-                        <input type="text" className="form-control" id="title" name="title" aria-describedby="emailHelp" value={note.title} onChange={onChange} minLength={5} required />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="description" className="form-label">Description</label>
-                        <input type="text" className="form-control" id="description" name="description" value={note.description} onChange={onChange} minLength={5} required />
-                    </div>
-                    <label htmlFor="tag" className="form-label">Tag</label>
-                    <div className="mb-3 d-flex">
-                        <input type="text" className="form-control" id="tag" name="tag" value={note.tag} onChange={onChange} />
-                        <div className="dropdown" style={{ "marginLeft": "1rem" }}>
-                            <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                                Options
-                            </button>
-                            <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                <li><a className="dropdown-item" onClick={changeTag}>Personal</a></li>
-                                <li><a className="dropdown-item" onClick={changeTag}>Faluda</a></li>
-                                <li><a className="dropdown-item" onClick={changeTag}>Important</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <label htmlFor="tag" className="form-label">Priority</label>
-                    <div className="mb-3 d-flex">
-                        <input type="text" className="form-control" id="priority" name="priority" value={note.priority} onChange={onChange} />
-                        <div className="dropdown" style={{ "marginLeft": "1rem" }}>
-                            <button className="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                                Options
-                            </button>
-                            <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                <li><a className="dropdown-item" onClick={changePriority}>Top</a></li>
-                                <li><a className="dropdown-item" onClick={changePriority}>High</a></li>
-                                <li><a className="dropdown-item" onClick={changePriority}>Low</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <label htmlFor="tag" className="form-label">Deadline</label>
-                    <div>
-                        <DatePicker selected={date} onChange={(date) => setDate(date)} />
-                    </div>
+  
+  
+ 
+  const inputEvent = (event) => {
+    console.log(event.target.value);
+    console.log(event.target.name);
+    setNote({ ...note, [event.target.name]: event.target.value });
+  };
 
-                    <button type="submit" disabled={note.title.length < 5 || note.description.length < 5} className="btn btn-primary my-3" onClick={handleSubmit}  >Add note</button>
-                </form>
+  const onAdd = (event) => {
+    event.preventDefault();
+    console.log(note);
+    handleClose();
+    addNote(note.title, note.description, note.tag, note.date);
+    
+  };
+
+  return (
+    <>
+      <div className="pb-2">
+        <div className="card">
+          <div className="card-body">
+            <div className="d-flex flex-row align-items-center">
+              <input
+                type="text"
+                className="form-control form-control-lg"
+                placeholder="Add title"
+                id="title"
+                name="title"
+                onChange={inputEvent}
+              />
+
+              <div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleShow}
+                >
+                  Add
+                </button>
+              </div>
+
+              <Modal show={show} onHide={handleClose}>
+                <Modal.Header closeButton>
+                  <Modal.Title>Tittle</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <div className="form-outline mb-4">
+                    <label className="form-label" htmlFor="description">
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      className="form-control form-control-lg"
+                      name="description"
+                      onChange={inputEvent}
+                    />
+                  </div>
+                  
+
+                  <div className="form-outline mb-4">
+                    <label className="form-label" htmlFor="tag">
+                      Tag
+                    </label>
+                    <input
+                      type="text"
+                      id="tag"
+                      className="form-control form-control-lg"
+                      name="tag"
+                      onChange={inputEvent}
+                    />
+                  </div>
+
+                  <div className="form-outline mb-4">
+                    <label className="form-label" htmlFor="date">
+                      Due Date
+                    </label>
+                    <input
+                      type="date"
+                      id="date"
+                      className="form-control form-control-lg"
+                      name="date"
+                      onChange={inputEvent}
+                    />
+                  </div>
+                  <div className="form-outline mb-4">
+                    <label className="form-label" htmlFor="description">
+                      Add image
+                    </label>
+                    <br />
+                    <input type="file" id="image"
+                      name="image" />
+                  </div>
+                </Modal.Body>
+
+                <Modal.Footer>
+                  <Button variant="secondary" onClick={handleClose}>
+                    Close
+                  </Button>
+                  <Button variant="primary" onClick={onAdd}>
+                    Add
+                  </Button>
+                </Modal.Footer>
+              </Modal>
             </div>
+          </div>
         </div>
-    )
-}
+      </div>
+      <hr className="my-4" />
+    </>
+  );
+};
+
+export default AddNote;
