@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Loging.css';
 import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from "jwt-decode";
-import { useEffect } from 'react';
 import { FacebookLoginButton } from 'react-social-login-buttons';
 import { LoginSocialFacebook } from 'reactjs-social-login';
+import LogGoogle from './LogGoogle';
 
 
 const Loging = () => {
@@ -27,38 +26,41 @@ const onSubmit= async (event) => {
     if(json.success){
       //redirect
       localStorage.setItem('token',json.authToken);
-      navigate('/')
+
+      navigate('/task')
     }
 };
+
 
 const onChange= (event)=>{
   setCredentials({...credentials, [event.target.name]:event.target.value})
 }
 
-const handleCallbackResponse = (Response) => {
-  console.log(Response.credential);
-  const credentialResponseDecoded = jwtDecode(Response.credential);
-  // setUser(credentialResponseDecoded);
-  console.log(credentialResponseDecoded);
-  document.getElementById("signInDiv").hidden = true;
-};
+// const handleCallbackResponse = (Response) => {
+//   console.log(Response.credential);
+//   const credentialResponseDecoded = jwtDecode(Response.credential);
+//   // setUser(credentialResponseDecoded);
+//   console.log(credentialResponseDecoded);
+//   document.getElementById("signInDiv").hidden = true;
+// };
 
 // const handleSignOut = (event) => {
 //   setUser({});
 //   document.getElementById("signInDiv").hidden = false;
 // }
-const google = window.google;
-useEffect(()=>{
-  google.accounts.id.initialize({
-    client_id: "384014618827-hqgeaqsg1799nhams8sdknbea627sd14.apps.googleusercontent.com",
-    callback: handleCallbackResponse
-  });
 
-  google.accounts.id.renderButton(
-    document.getElementById("signInDiv"),
-    { theme: "outline", size: "large"}
-  );
-}, []);
+// const google = window.google;
+// useEffect(()=>{
+//   google.accounts.id.initialize({
+//     client_id: "384014618827-hqgeaqsg1799nhams8sdknbea627sd14.apps.googleusercontent.com",
+//     callback: handleCallbackResponse
+//   });
+
+//   google.accounts.id.renderButton(
+//     document.getElementById("signInDiv"),
+//     { theme: "outline", size: "large"}
+//   );
+// }, []);
 
     return (
       <section className="vh-100">
@@ -115,8 +117,8 @@ useEffect(()=>{
                   </button> */}
 
 
-                  <div id="signInDiv"></div>
-
+                  {/* <div id="signInDiv"></div> */}
+                  <LogGoogle />
 
                   <LoginSocialFacebook
                     appId='1028878185033376'
@@ -129,27 +131,7 @@ useEffect(()=>{
                   >
                     <FacebookLoginButton/>
                   </LoginSocialFacebook>
-
-
-
-
-                  
-                  {/* { Object.keys(user).length != 0 && 
-                    <button onClick={(e) => handleSignOut(e)}>Sign Out</button>
-                  } */}
-                  
-                  {/* { user && 
-                    <div>
-                      <h3>{user.name}</h3>
-                    </div>
-                  } */}
-
-
                   {/* <button type="button" className="btn btn-primary btn-floating mx-1">
-                    <i className="fab fa-twitter"></i>
-                  </button>
-
-                  <button type="button" className="btn btn-primary btn-floating mx-1">
                     <i className="fab fa-linkedin-in"></i>
                   </button> */}
                 </div>

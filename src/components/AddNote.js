@@ -5,7 +5,7 @@ import NoteContext from "../context/notes/NoteContext";
 
 const AddNote = () => {
   const context = useContext(NoteContext);
-  const { addNote } = context;
+  const { addNote} = context;
 
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -16,15 +16,8 @@ const AddNote = () => {
     tag: "",
     date: "",
   });
-  // const [file, setFile] = useState("");
+  const [file, setFile] = useState(null);
 
-  // const handleImage = ()=>{
-  //   console.log(file);
-  // };
-
-  
-  
- 
   const inputEvent = (event) => {
     console.log(event.target.value);
     console.log(event.target.name);
@@ -34,9 +27,10 @@ const AddNote = () => {
   const onAdd = (event) => {
     event.preventDefault();
     console.log(note);
+    console.log(file);
     handleClose();
     addNote(note.title, note.description, note.tag, note.date);
-    
+    //addImage(file, note._id);
   };
 
   return (
@@ -113,7 +107,7 @@ const AddNote = () => {
                     </label>
                     <br />
                     <input type="file" id="image"
-                      name="image" />
+                      name="image" onChange={(e)=>setFile(e.target.files[0])} />
                   </div>
                 </Modal.Body>
 

@@ -29,7 +29,7 @@ const Sign = () => {
           if(json.success){
             //redirect
             localStorage.setItem('token',json.authToken);
-            navigate('/');
+            navigate('/Task');
           }
         //   else{
         //     //props.showAlert("Invalid Credentials","danger")

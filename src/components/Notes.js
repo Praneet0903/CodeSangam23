@@ -5,12 +5,14 @@ import AddNote from "./AddNote";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import { useNavigate } from "react-router-dom";
+import { DragDropContext, Draggable } from "react-beautiful-dnd";
+import { StrictModeDroppable as Droppable } from "../helpers/StrictModeDroppable";
 
 const Notes = () => {
   const navigate = useNavigate();
   const context = useContext(NoteContext);
-  const { notes, getNote } = context;
-  const { deleteNote, updateNote } = context;
+  let { notes, getNote } = context;
+  const { deleteNote, updateNote, updateCompleted } = context;
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -20,144 +22,334 @@ const Notes = () => {
     }
   }, []);
 
+    
+  const [curnote, setCurNote] = useState({
+    id: "",
+    etitle: "",
+    edescription: "",
+    etag: "",
+    edueDate: "",
+  });
+
 
   const [show, setShow] = useState(false);
+  const [showContent, setContent] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  const [note, setNote] = useState({
-    title: "",
-    description: "",
-    tag: "",
-    date: "",
-  });
+  const handleContentShow = (currentNote) => 
+  {
+    
+    setContent(true);
+    setCurNote({
+      id: currentNote._id,
+      etitle: currentNote.title,
+      edescription: currentNote.description,
+      etag: currentNote.tag,
+      edueDate: currentNote.dueDate,
+    });
+  }
+  const handleContentClose = () => setContent(false);
+
+  const inputEvent = (event) => {
+    console.log(event.target.value);
+    console.log(event.target.name);
+    setCurNote({ ...curnote, [event.target.name]: event.target.value });
+  };
+
+  const upNote = (currentNote) => {
+    handleShow();
+    console.log(currentNote);
+    setCurNote({
+      id: currentNote._id,
+      etitle: currentNote.title,
+      edescription: currentNote.description,
+      etag: currentNote.tag,
+      edueDate: currentNote.dueDate,
+    });
+    // console.log(curnote);
+  };
+
+  const onUpdate = (event) => {
+    event.preventDefault();
+    console.log(curnote);
+    updateNote(
+      curnote.id,
+      curnote.etitle,
+      curnote.edescription,
+      curnote.etag,
+      curnote.edueDate
+    );
+    handleClose();
+  };
+
+  const updateDone = (currentNote) => {
+    updateCompleted(currentNote._id, !currentNote.done);
+  };
+
+ 
+
+  useEffect(() => {
+    const arrayIdsOrder = JSON.parse(localStorage.getItem("taskOrder"));
+
+    if (!arrayIdsOrder && notes?.length) {
+      const idsOrderArray = notes.map((task) => task._id);
+      localStorage.setItem("taskOrder", JSON.stringify(idsOrderArray));
+    }
+
+    let myArray;
+    if (arrayIdsOrder?.length && notes?.length) {
+      myArray = arrayIdsOrder.map((pos) => {
+        return notes.find((el) => el._id === pos);
+      });
+
+      const newItems = notes.filter((el) => {
+        return !arrayIdsOrder.includes(el._id);
+      });
+
+      if (newItems?.length) myArray = [...newItems, ...myArray];
+    }
+
+    notes = myArray || notes;
+  }, [notes]);
+
+  const handleOnDragEnd = (result) => {
+    if (!result?.destination) return;
+
+    const tasks = [...notes];
+
+    const [reorderedItem] = tasks.splice(result.source.index, 1);
+
+    tasks.splice(result.destination.index, 0, reorderedItem);
+
+    const idsOrderArray = tasks.map((task) => task._id);
+    localStorage.setItem("taskOrder", JSON.stringify(idsOrderArray));
+
+    notes = tasks;
+    console.log(notes);
+  };
 
   return (
     <>
       <AddNote />
       <div className="container">
         <h2>Your Notes..</h2>
-        {notes.map((note) => {
-          return (
-            <ul className="list-group list-group-horizontal rounded-0 bg-transparent">
-              <div className="box">
-                {/* <li className="list-group-item d-flex align-items-center ps-0 pe-3 py-1 rounded-0 border-0 bg-transparent">
-                          <div className="form-check">
-                            <input className="form-check-input me-0" type="checkbox" value="" id="flexCheckChecked1"
-                              aria-label="..." checked />
+        <DragDropContext onDragEnd={handleOnDragEnd}>
+          <Droppable droppableId="todos">
+            {(provided) => (
+              <section {...provided.droppableProps} ref={provided.innerRef}>
+                {notes.map((note, index) => {
+                  return (
+                    <Draggable
+                      key={note._id}
+                      draggableId={note._id.toString()}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <ul
+                          className="list-group list-group-horizontal rounded-0 bg-transparent"
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          ref={provided.innerRef}
+                        >
+                          <div className="box">
+                            <li className="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent">
+                              <div className="form-check">
+                                <input
+                                  className="form-check-input me-0"
+                                  type="checkbox"
+                                  value={note.done}
+                                  id="done"
+                                  name="done"
+                                  checked={note.done}
+                                  onChange={() => updateDone(note)}
+                                />
+                              </div>
+                              <div className="content_box">
+                                <p>
+                                  <button type="button"
+                                  data-mdb-toggle="tooltip"
+                                  className="bttn" 
+                                  onClick={()=>{handleContentShow(note)}}>
+                                    <h2
+                                    className={
+                                      note.done
+                                        ? "lead fw-normal mb-0 line_through"
+                                        : "lead fw-normal mb-0"
+                                    }
+                                  >
+                                    {note.title}
+                                  </h2>
+                                  </button>
+                                </p>
+                                <p className="small mb-0">
+                                  <i className="fas fa-info-circle me-2"></i>
+                                  {note.dueDate}
+                                </p>
+                                
+                                 <Modal show={showContent} onHide={handleContentClose}>
+                                <Modal.Header closeButton>
+                                  <Modal.Title>{curnote.etitle}</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                 <p>
+                                  Description:
+                                  <h2 className="lead fw-normal mb-0">
+                                    {curnote.edescription}
+                                  </h2>
+                                </p>
+                                <p >
+                                  tag:
+                                  <h2 className="lead fw-normal mb-0">
+                                    {curnote.etag}
+                                  </h2>
+                                </p>
+                                </Modal.Body>
+
+                                <Modal.Footer>
+                                  <Button
+                                    variant="secondary"
+                                    onClick={handleContentClose}
+                                  >
+                                    Close
+                                  </Button>
+                                  </Modal.Footer>
+                              </Modal>
+                              </div>
+                            </li>
                           </div>
-                        </li> */}
+                          
+                          <div className="d-flex flex-row justify-content-end mb-1">
+                              <button
+                                type="button"
+                                className="bttn"
+                                data-mdb-toggle="tooltip"
+                                title="Edit todo"
+                                onClick={() => {
+                                  upNote(note);
+                                }}
+                              >
+                              <i className="fas fa-pencil-alt me-3"></i>
+                              </button>
+                              <Modal show={show} onHide={handleClose}>
+                                <Modal.Header closeButton>
+                                  <Modal.Title>Update Task</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                  <div className="form-outline mb-4">
+                                    <label
+                                      className="form-label"
+                                      htmlFor="description"
+                                    >
+                                      Title
+                                    </label>
+                                    <input
+                                      type="text"
+                                      className="form-control form-control-lg"
+                                      id="etitle"
+                                      name="etitle"
+                                      value={curnote.etitle}
+                                      onChange={inputEvent}
+                                    />
+                                  </div>
 
-                <li className="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent">
-                  <h2 className="lead fw-normal mb-0">{note.title}</h2>
-                </li>
-                <li className="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent">
-                  <h2 className="lead fw-normal mb-0">{note.description}</h2>
-                </li>
-                <li className="list-group-item px-3 py-1 d-flex align-items-center flex-grow-1 border-0 bg-transparent">
-                  <h2 className="lead fw-normal mb-0">{note.tag}</h2>
-                </li>
-              </div>
+                                  <div className="form-outline mb-4">
+                                    <label
+                                      className="form-label"
+                                      htmlFor="description"
+                                    >
+                                      Description
+                                    </label>
+                                    <textarea
+                                      id="edescription"
+                                      className="form-control form-control-lg"
+                                      name="edescription"
+                                      value={curnote.edescription}
+                                      onChange={inputEvent}
+                                    />
+                                  </div>
 
-              <li className="list-group-item ps-3 pe-0 py-1 rounded-0 border-0 bg-transparent">
-                <div className="d-flex flex-row justify-content-end mb-1">
-                  <button
-                  type="button" className="text-info"
-                  data-mdb-toggle="tooltip"
-                  title="Edit todo"
-                  onClick={handleShow}
-                >
-                <i className="fas fa-pencil-alt me-3" onClick={() => updateNote(note._id)}></i>
-                </button>
-                <Modal show={show} onHide={handleClose}>
-                <Modal.Header closeButton>
-                  <Modal.Title>Tittle</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <div className="form-outline mb-4">
-                    <label className="form-label" htmlFor="description">
-                      Description
-                    </label>
-                    <textarea
-                      id="description"
-                      className="form-control form-control-lg"
-                      name="description"
-                      
-                    />
-                  </div>
-                  
+                                  <div className="form-outline mb-4">
+                                    <label className="form-label" htmlFor="tag">
+                                      Tag
+                                    </label>
+                                    <input
+                                      type="text"
+                                      id="etag"
+                                      className="form-control form-control-lg"
+                                      name="etag"
+                                      value={curnote.etag}
+                                      onChange={inputEvent}
+                                    />
+                                  </div>
 
-                  <div className="form-outline mb-4">
-                    <label className="form-label" htmlFor="tag">
-                      Tag
-                    </label>
-                    <input
-                      type="text"
-                      id="tag"
-                      className="form-control form-control-lg"
-                      name="tag"
-                      
-                    />
-                  </div>
+                                  <div className="form-outline mb-4">
+                                    <label
+                                      className="form-label"
+                                      htmlFor="date"
+                                    >
+                                      Due Date
+                                    </label>
+                                    <input
+                                      type="date"
+                                      id="edate"
+                                      className="form-control form-control-lg"
+                                      name="edate"
+                                      value={curnote.edueDate}
+                                      onChange={inputEvent}
+                                    />
+                                  </div>
+                                  <div className="form-outline mb-4">
+                                    <label
+                                      className="form-label"
+                                      htmlFor="description"
+                                    >
+                                      Add image
+                                    </label>
+                                    <br />
+                                    <input
+                                      type="file"
+                                      id="eimage"
+                                      name="eimage"
+                                    />
+                                  </div>
+                                </Modal.Body>
 
-                  <div className="form-outline mb-4">
-                    <label className="form-label" htmlFor="date">
-                      Due Date
-                    </label>
-                    <input
-                      type="date"
-                      id="date"
-                      className="form-control form-control-lg"
-                      name="date"
-                      
-                    />
-                  </div>
-                  <div className="form-outline mb-4">
-                    <label className="form-label" htmlFor="description">
-                      Add image
-                    </label>
-                    <br />
-                    <input type="file" id="image"
-                      name="image" />
-                  </div>
-                </Modal.Body>
+                                <Modal.Footer>
+                                  <Button
+                                    variant="secondary"
+                                    onClick={handleClose}
+                                  >
+                                    Close
+                                  </Button>
+                                  <Button variant="primary" onClick={onUpdate}>
+                                    Update
+                                  </Button>
+                                </Modal.Footer>
+                              </Modal>
 
-                <Modal.Footer>
-                  <Button variant="secondary" onClick={handleClose}>
-                    Close
-                  </Button>
-                  <Button variant="primary" >
-                    Add
-                  </Button>
-                </Modal.Footer>
-              </Modal>
-                  <a
-                    href="#!"
-                    className="text-danger"
-                    data-mdb-toggle="tooltip"
-                    title="Delete todo"
-                  >
-                    <i
-                      className="fas fa-trash-alt"
-                      onClick={() => deleteNote(note._id)}
-                    ></i>
-                  </a>
-                </div>
-                <div className="text-end text-muted">
-                  <a
-                    className="text-muted"
-                    data-mdb-toggle="tooltip"
-                    title="Due date"
-                  >
-                    <p className="small mb-0">
-                      <i className="fas fa-info-circle me-2"></i>
-                      {note.dueDate}
-                    </p>
-                  </a>
-                </div>
-              </li>
-            </ul>
-          );
-        })}
+                              <a
+                                href=""
+                                className="text-danger d-flex delet"
+                                data-mdb-toggle="tooltip"
+                                title="Delete todo"
+                              >
+                                <i
+                                  className="fas fa-trash-alt"
+                                  onClick={() => deleteNote(note._id)}
+                                ></i>
+                              </a>
+                            </div>
+                        </ul>
+                        
+                      )}
+                    </Draggable>
+                  );
+                })}
+                {provided.placeholder}
+              </section>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
     </>
   );

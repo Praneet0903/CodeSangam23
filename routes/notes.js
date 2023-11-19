@@ -74,6 +74,31 @@ router.put(
 })
 
 
+router.put(
+  "/updatedone/:id",fetchuser,async (req, res) => {
+    const {done} = req.body;
+    try {
+    //create a newNote object
+    const newNote={};
+    {newNote.done=done};
+
+    //find the note to be update
+    let note = await Note.findById(req.params.id);
+    if(!note){
+      return res.status(404).send("Not allowed");
+    }
+
+    if(note.user.toString() !== req.user.id){
+      return  res.status(401).send("Not allowed");
+    }
+    note = await Note.findByIdAndUpdate(req.params.id, {$set:newNote},{new:true})
+    res.json({note})
+  } catch (error) {
+      
+  }
+})
+
+
 //ROUTE 4:delete a existing note //login require
 router.delete(
   "/deletenote/:id",fetchuser,async (req, res) => {
@@ -94,5 +119,6 @@ router.delete(
       
   }
 })
+
 
 module.exports = router;
