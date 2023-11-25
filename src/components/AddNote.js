@@ -1,4 +1,6 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
+import { ReactSketchCanvas } from 'react-sketch-canvas';
+
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import NoteContext from "../context/notes/NoteContext";
@@ -6,6 +8,7 @@ import NoteContext from "../context/notes/NoteContext";
 const AddNote = () => {
   const context = useContext(NoteContext);
   const { addNote } = context;
+  const sketchRef = useRef();
 
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
@@ -15,43 +18,43 @@ const AddNote = () => {
     description: "",
     tag: "",
     date: "",
+    drawingData:""
   });
-  // const [file, setFile] = useState("");
+  const [file, setFile] = useState(null);
 
-  // const handleImage = ()=>{
-  //   console.log(file);
-  // };
-
-  
-  
- 
   const inputEvent = (event) => {
     console.log(event.target.value);
     console.log(event.target.name);
     setNote({ ...note, [event.target.name]: event.target.value });
   };
 
-  const onAdd = (event) => {
+  const handleSave = ()=>{
+    console.log("handleSave")
+  }
+
+  const onAdd = async (event) => {
     event.preventDefault();
     console.log(note);
+    // console.log(file);
+    const drawingData = await sketchRef.current.exportImage("png");
     handleClose();
-    addNote(note.title, note.description, note.tag, note.date);
-    
+    addNote(note.title, note.description, note.tag, note.date,drawingData);
+    //addImage(file, note._id);
   };
 
   return (
     <>
       <div className="pb-2">
         <div className="card">
-          <div className="card-body">
+          <div className="card-body" >
             <div className="d-flex flex-row align-items-center">
               <input
                 type="text"
                 className="form-control form-control-lg"
-                placeholder="Add title"
+                placeholder="Add Note "
                 id="title"
                 name="title"
-                onChange={inputEvent}
+                onClick={handleShow}
               />
 
               <div>
@@ -66,9 +69,21 @@ const AddNote = () => {
 
               <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
-                  <Modal.Title>Tittle</Modal.Title>
+                  <Modal.Title>Title</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                  <div className="form-outline mb-4">
+                    <label className="form-label" htmlFor="title">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      className="form-control form-control-lg"
+                      name="title"
+                      onChange={inputEvent}
+                    />
+                  </div>
                   <div className="form-outline mb-4">
                     <label className="form-label" htmlFor="description">
                       Description
@@ -80,7 +95,7 @@ const AddNote = () => {
                       onChange={inputEvent}
                     />
                   </div>
-                  
+
 
                   <div className="form-outline mb-4">
                     <label className="form-label" htmlFor="tag">
@@ -107,13 +122,10 @@ const AddNote = () => {
                       onChange={inputEvent}
                     />
                   </div>
-                  <div className="form-outline mb-4">
-                    <label className="form-label" htmlFor="description">
-                      Add image
-                    </label>
-                    <br />
-                    <input type="file" id="image"
-                      name="image" />
+                  <div>
+                    <ReactSketchCanvas ref={sketchRef} />
+                    <button onClick={handleSave}>Save Drawing</button>
+                    <button onClick={() => { sketchRef.current.clearCanvas() }}>Clear Canvas</button>
                   </div>
                 </Modal.Body>
 

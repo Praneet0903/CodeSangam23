@@ -1,92 +1,109 @@
 const express = require("express");
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const fetchuser = require("../middleware/fetchuser");
-const Notes = require("../models/Notes");
-const { update } = require("../models/User");
+var fetchuser = require("../middleware/fetchuser");
+var Note = require("../models/Note");
+const { body, validationResult } = require("express-validator");
 
-
-//ROUTE 1: fetch all user notes using: GET Login required
-router.get('/fetchallnotes', fetchuser, async (req, res) => {
-    try {
-        //getting all notes
-        const fetchedNotes = await Notes.find({ user: req.user.id });
-        res.json(fetchedNotes);
-    } catch (error) {
-        //error catching
+// ROUTE 1: fetch all notes login required
+router.get("/fetchallnotes", fetchuser, async (req, res) => {
+    try{
+        const note = await Note.find({ user: req.user.id });
+        res.json(note);
+    } catch(error){
         console.error(error.message);
-        res.status(500).send("Internal Server Error");
+        res.status(500).send("some nternal server error occoured");
     }
-})
+});
 
-//ROUTE 2: create notes using: POST Login required
-router.post('/addnote', fetchuser, [
-    body('title', "Length of title is too less").isLength({ min: 5 }),
-    body('description', "Length of description is too less").isLength({ min: 5 })
-], async (req, res) => {
-
-    //If there  are errors return bad request and errors
+// ROUTE 2:add a new note  using post
+router.post(
+  "/addnote",
+  fetchuser,
+  [
+    body("title", "enter  a valid title").isLength({ min: 3 }),
+    //body("email", "enter a valid email").isEmail(),
+    body("description", "length of description must be atleast 5").isLength({ min: 5 }),
+  ],
+    async (req, res) => 
+    {
+    try{
+    const {title,description,tag, dueDate,drawingData}=req.body;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+      return res.status(404).json({ errors: errors.array() });
     }
+    
+    const note = new Note({
+        title, description,tag,dueDate,user: req.user.id,drawingData
+    })
+    const saveNote = await note.save()
 
-    try {
-        //destructuring to get data
-        const { title, description, tag ,deadline,priority} = req.body;
-
-        //adding note to db
-        const note = await Notes.create({
-            user: req.user.id,
-            title: title,
-            description: description,
-            tag: tag,
-            deadline: deadline,
-            priority: priority,
-        })
-        res.json(note)
-    } catch (error) {
-        //error catching
+    res.json(saveNote);
+    } catch(error){
         console.error(error.message);
-        res.status(500).send("Internal Server Error");
+      res.status(500).send("some nternal server error occoured");
     }
 })
 
-//ROUTE 3: update notes using: PUT Login required
-router.put('/updatenote/:id', fetchuser, async (req, res) => {
 
-    //destructuring
-    const { title, description, tag,deadline,priority } = req.body;
+//ROUTE 3: update a existing note //login require
+router.put(
+  "/updatenote/:id",fetchuser,async (req, res) => {
+    const {title,description,tag,drawingData} = req.body;
+    try {
+    //create a newNote object
+    const newNote={};
+    if(title){newNote.title = title};
+    if(description){newNote.description = description};
+    if(tag){newNote.tag=tag};
+    if(drawingData)(newNote.drawingData=drawingData);
 
-    //creating the updated note
-    const updateNote = {};
-    if (title) { updateNote.title = title };
-    if (description) { updateNote.description = description };
-    if (tag) { updateNote.tag = tag };
-    if (deadline) { updateNote.deadline = deadline };
-    if (priority) { updateNote.priority = priority };
+    //find the note to be update
+    let note = await Note.findById(req.params.id);
+    if(!note){
+      return res.status(404).send("Not allowed");
+    }
 
-    //get note using unique id
-    let note = await Notes.findById(req.params.id);
-
-    //check whether note exists
-    if (!note) { return res.status(404).send("Note not found") };
-
-    //check if the user is same
-    if (note.user.toString() !== req.user.id) { return res.status(401).send("Not Allowed") };
-
-    //update the note
-    note = await Notes.findByIdAndUpdate(req.params.id, { $set: updateNote }, { new: true });
-
-    res.json(note);
-
+    if(note.user.toString() !== req.user.id){
+      return  res.status(401).send("Not allowed");
+    }
+    note = await Note.findByIdAndUpdate(req.params.id, {$set:newNote},{new:true})
+    res.json({note})
+  } catch (error) {
+      
+  }
 })
 
-//ROUTE 4: Delete notes using: DELETE Login required
+router.put(
+  "/updatedone/:id",fetchuser,async (req, res) => {
+    const {done} = req.body;
+    try {
+    //create a newNote object
+    const newNote={};
+    {newNote.done=done};
+
+    //find the note to be update
+    let note = await Note.findById(req.params.id);
+    if(!note){
+      return res.status(404).send("Not allowed");
+    }
+
+    if(note.user.toString() !== req.user.id){
+      return  res.status(401).send("Not allowed");
+    }
+    note = await Note.findByIdAndUpdate(req.params.id, {$set:newNote},{new:true})
+    res.json({note})
+  } catch (error) {
+      
+  }
+})
+
+
+//ROUTE 4:delete a existing note //login require
 router.delete('/deletenote/:id', fetchuser, async (req, res) => {
 
     //get note using unique id
-    let note = await Notes.findById(req.params.id);
+    let note = await Note.findById(req.params.id);
 
     //check whether note exists
     if (!note) { return res.status(404).send("Note not found") };
@@ -95,9 +112,28 @@ router.delete('/deletenote/:id', fetchuser, async (req, res) => {
     if (note.user.toString() !== req.user.id) { return res.status(401).send("Not Allowed") };
 
     //delete the note
-    note = await Notes.findByIdAndDelete(req.params.id);
+    note = await Note.findByIdAndDelete(req.params.id);
 
     res.json({ "Success": "Note has been deleted", note: note });
 })
 
-module.exports = router
+//Router 5: fetch all deadlines
+router.get("/fetchdeadline", fetchuser, async (req, res) => {
+  try{
+      const date = new Date();
+      var dateTom = date.getDate()+1;
+      const note = await Note.find({ user: req.user.id });
+      let deadlines=[];
+      for (let index = 0; index < note.length; index++) {
+        const ded = {dead:note[index].dueDate,title:note[index].title};
+        deadlines.push(ded);
+      }
+      res.json(deadlines);
+  } catch(error){
+      console.error(error.message);
+      res.status(500).send("some nternal server error occoured");
+  }
+});
+
+
+module.exports = router;

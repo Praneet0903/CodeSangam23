@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './Sign.css';
 import { useNavigate } from 'react-router-dom';
 
-const Sign = () => {
+const Sign = (props) => {
 
     const navigate = useNavigate();
     const host = "http://localhost:5000"
@@ -29,11 +29,12 @@ const Sign = () => {
           if(json.success){
             //redirect
             localStorage.setItem('token',json.authToken);
-            navigate('/');
+            navigate('/Task');
+            props.showAlert("Account Created","success")
           }
-        //   else{
-        //     //props.showAlert("Invalid Credentials","danger")
-        //   }   
+          else{
+            props.showAlert("Invalid Credentials","danger")
+          }   
     }
     return (
     <section className="vh-100" style={{}}>

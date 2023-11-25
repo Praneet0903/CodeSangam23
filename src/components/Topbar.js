@@ -12,7 +12,7 @@ const Topbar = () => {
     }
 
     return (
-        <nav className="navbar fixed-top navbar-expand-lg bg-body-tertiary" style={{ "padding": "0px" }}>
+        <nav className="navbar navbar-expand-lg bg-body-tertiary " style={{ "padding": "0px" }}>
             <div className="container-fluid">
                 <a className="navbar-brand" href="/">
                     <img src={logo} style={{ "height": "50px", "width": "130px" }} alt='logo'/>

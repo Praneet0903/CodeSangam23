@@ -1,49 +1,76 @@
-import React from "react";
+import React, { useContext, useEffect, useRef, useState } from 'react'
+import NoteContext from '../context/notes/NoteContext'
+import { NoteItem } from '../components/NoteItem';
 import Notes from "./Notes";
 import './Todos.css';
 
-const Todos = () => {
+const Todos = (props) => {
+  const host = "http://localhost:5000";
 
+  const [deadlines,setDeadlines] = useState([]);
+  const [ notes,setNotes] = useState([]);
+  
+
+  function showNotification(title, options) {
+    if (Notification.permission === "granted") {
+        new Notification(title, options);
+    }
+}
+
+function calculateTimeDifference(deadline) {
+    const currentTime = new Date();
+    const timeDifference = deadline - currentTime;
+    return timeDifference;
+}
+
+const getDeadline = async () => {
+  const response = await fetch(`${host}/api/notes/fetchdeadline`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "auth-token": localStorage.getItem('token'),
+    },
+  });
+  const json = await response.json();
+  // console.log(json); 
+  setDeadlines(json);
+};
+
+const fetchAndNotify = async () => {
+  await getDeadline();
+  console.log("fetch & notify");
+  console.log(deadlines);
+  for (let index = 0; index < deadlines.length; index++) {
+    const deadline = deadlines[index].dead;
+    // console.log(deadline);
+    if(deadline==null){
+      continue;
+    }
+    console.log(deadline);
+    const curr = new Date().toISOString();
+    console.log(curr);
+    const timeDifference = calculateTimeDifference(deadline);
+    console.log(timeDifference);
+
+    const threshold = 24 * 60 * 60 * 1000;
+
+    if ((timeDifference > 0 && timeDifference <= threshold)) {
+      console.log("Hola");
+        setTimeout(() => {
+            showNotification("Deadline approaching!", { body: "Your deadline is coming up soon." });
+        }, timeDifference);
+    }
+  }
+};
+
+  useEffect( () => {
+    fetchAndNotify();
+}, []);
 
 
   
-  return (
-
-  <section className="vh-100">
-  <div className="container py-5 h-100">
-    <div className="row d-flex justify-content-center align-items-center h-100">
-      <div className="col">
-        <div className="card" id="list1" style={{"border-radius": ".75rem", "backgroundColor": "#eff1f2"}}>
-          <div className="card-body py-4 px-4 px-md-5">
-
-            <p className="h1 text-center mt-3 mb-4 pb-3 text-primary">
-              <i className="fas fa-check-square me-1"></i>
-              <u>My Todo-s</u>
-            </p>
-
-            
-
-            
-
-            <div className="d-flex justify-content-end align-items-center mb-4 pt-2 pb-3">
-              <p className="small mb-0 ms-4 me-2 text-muted">Sort</p>
-              <select className="select">
-                <option value="1">Added  Dates</option>
-                <option value="2">Priority</option>
-                <option value="2">Deadline</option>
-              </select>
-              <a href="#!" style={{"color": "#23af89"}} data-mdb-toggle="tooltip" title="Ascending"><i
-                  className="fas fa-sort-amount-down-alt ms-2"></i></a>
-            </div>
-            
-            <Notes />
-
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+  return (  
+  <Notes showAlert={props.showAlert} />
   );
 }
 
