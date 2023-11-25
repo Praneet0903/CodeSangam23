@@ -1,0 +1,25 @@
+.rounded-0 {
+    border-radius: 0!important;
+    border: 1px solid #b5b5b5;
+    margin-bottom: 16px;
+    border-radius: 5em;
+}
+
+.line_through  {
+    text-decoration: line-through;
+}
+
+.bttn {
+    border: none;
+}
+.content_box{
+    line-height: 0px;
+}
+.delet{
+    padding: 1.5rem;
+}
+#align{
+    display: flex;
+     justify-content: space-between;
+
+}
